@@ -1,5 +1,11 @@
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
+import {
+  atom,
+  useRecoilState,
+  useRecoilValue,
+  useSetRecoilState,
+} from "recoil";
 
 // export function ToDoList() {
 //   const [todo, setTodo] = useState("");
@@ -37,15 +43,51 @@ import { useForm } from "react-hook-form";
 //   );
 // }
 
+interface Iform {
+  toDo: string;
+}
+
+interface ITodo {
+  text: string;
+  category: "TODO" | "DONE" | "DOING";
+  id: number;
+}
+
+const toDoState = atom<ITodo[]>({ key: "toDo", default: [] });
+
 function ToDoList() {
-  const { register } = useForm();
-  console.log(register("todo"));
+  const [toDos, setTodos] = useRecoilState(toDoState);
+
+  const { register, handleSubmit, setValue } = useForm<Iform>();
+  const handleValid = (data: Iform) => {
+    console.log("add to " + data.toDo);
+    setTodos((a) => [
+      { text: data.toDo, id: Date.now(), category: "TODO" },
+      ...a,
+    ]);
+    setValue("toDo", "");
+  };
+  console.log(toDos);
   return (
     <div>
-      <form>
-        <input placeholder="write a to do"></input>
+      <h1>To dos</h1>
+      <hr></hr>
+      <form
+        onSubmit={handleSubmit(handleValid)}
+        style={{ display: "flex", flexDirection: "column" }}
+      >
+        <input
+          {...register("toDo", { required: "Wirte a to do" })}
+          placeholder="write a to do"
+        ></input>
+
         <button>Add</button>
       </form>
+      <ul>
+        {toDos.map((toDo) => (
+          <li>{toDo.text}</li>
+        ))}
+      </ul>
     </div>
   );
 }
